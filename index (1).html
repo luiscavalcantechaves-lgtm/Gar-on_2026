@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comanda Digital - Garçom</title>
+    <style>
+        :root {
+            --primary: #e67e22;
+            --primary-dark: #d35400;
+            --bg-color: #f5f6fa;
+            --card-bg: #ffffff;
+            --text-color: #2f3640;
+            --border-color: #dcdde1;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --admin-color: #2c3e50;
+            --delivery-color: #9b59b6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header Fixado */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mesa-selector {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+            font-weight: bold;
+        }
+
+        .mesa-selector option {
+            color: var(--text-color);
+            font-weight: normal;
+        }
+
+        /* Container Principal */
+        .container {
+            display: flex;
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        /* Seção do Menu de Itens */
+        .menu-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Categorias */
+        .categories {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+        }
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .category-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Grid de Produtos */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        .product-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .btn-remove-cardapio {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+            border: none;
+            border-radius: 5px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-remove-cardapio:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .product-name {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            color: var(--primary-dark);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .btn-add {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-add:active {
+            background-color: var(--primary-dark);
+        }
+
+        /* Lateral do Resumo do Pedido / Comanda */
+        .order-summary {
+            flex: 1;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 40px);
+            position: sticky;
+            top: 80px;
+            border: 1px solid var(--border-color);
+        }
+
+        .order-summary h3 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Formulário de Delivery */
+        .delivery-form {
+            display: none;
+            background-color: #fcf3ff;
+            border: 1px solid var(--delivery-color);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .delivery-form input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .order-items {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--bg-color);
+            font-size: 0.95rem;
+        }
+
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-qty {
+            background-color: var(--border-color);
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Seção de Formas de Pagamento adicionada na barra lateral */
+        .payment-section {
+            background-color: #fcfcfc;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .payment-section label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .payment-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .payment-select, .status-select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+            background-color: white;
+        }
+
+        .total-section {
+            border-top: 2px solid var(--bg-color);
+            padding-top: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .btn-send {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        /* Área de Cadastro de Produtos (Painel Admin) */
+        .admin-section {
+            max-width: 1200px;
+            width: 100%;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .admin-box {
+            background-color: #ffffff;
+            border: 2px dashed var(--admin-color);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .admin-box h4 {
+            color: var(--admin-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .admin-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 120px;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .btn-save {
+            background-color: var(--admin-color);
+            color: white;
+            border: none;
+            padding: 11px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background-color: #1a252f;
+        }
+
+        /* Área de Impressão Oculta na Tela */
+        #ticket-impressao {
+            display: none;
+        }
+
+        /* CONFIGURAÇÃO DE IMPRESSÃO */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #ticket-impressao, #ticket-impressao * {
+                visibility: visible;
+            }
+            #ticket-impressao {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                font-family: 'Courier New', Courier, monospace;
+                color: #000;
+                padding: 10px;
+            }
+            .ticket-header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;}
+            .ticket-title { font-size: 1.3rem; font-weight: bold; }
+            .ticket-linha { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 3px; }
+            .ticket-divisor { border-top: 1px dashed #000; margin: 8px 0; }
+            .ticket-total { font-weight: bold; font-size: 1.1rem; }
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .order-summary {
+                position: static;
+                max-height: none;
+            }
+            
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .admin-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-save {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho -->
+    <header>
+        <span>Garçom App</span>
+        <div>
+            <label for="mesa">Atendimento: </label>
+            <select id="mesa" class="mesa-selector" onchange="atualizarMesaNoResumo()">
+                <option value="01">Mesa 01</option>
+                <option value="02">Mesa 02</option>
+                <option value="03">Mesa 03</option>
+                <option value="04">Mesa 04</option>
+                <option value="05">Mesa 05</option>
+                <option value="06">Mesa 06</option>
+                <option value="07">Mesa 07</option>
+                <option value="08">Mesa 08</option>
+                <option value="09">Mesa 09</option>
+                <option value="10">Mesa 10</option>
+                <option value="Delivery">Delivery 🛵</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- Corpo Principal -->
+    <div class="container">
+        
+        <!-- Menu de Produtos -->
+        <main class="menu-section">
+            <div class="categories">
+                <button class="category-btn active" onclick="filtrarCategoria('todos', this)">Todos</button>
+                <button class="category-btn" onclick="filtrarCategoria('bebidas', this)">Bebidas</button>
+                <button class="category-btn" onclick="filtrarCategoria('lanches', this)">Lanches</button>
+                <button class="category-btn" onclick="filtrarCategoria('buffet', this)">Buffet</button>
+            </div>
+
+            <div class="products-grid" id="produtos-container">
+                <!-- Inserido dinamicamente via JS -->
+            </div>
+        </main>
+
+        <!-- Resumo da Comanda Lateral -->
+        <aside class="order-summary">
+            <h3><span id="resumo-mesa">Mesa 01</span></h3>
+            
+            <!-- Form de Delivery -->
+            <div class="delivery-form" id="delivery-inputs">
+                <input type="text" id="dev-nome" placeholder="Nome do Cliente">
+                <input type="tel" id="dev-fone" placeholder="Telefone / WhatsApp">
+                <input type="text" id="dev-end" placeholder="Endereço Completo de Entrega">
+            </div>
+            
+            <div class="order-items" id="itens-comanda">
+                <p style="color: #888; text-align: center; margin-top: 20px;">Nenhum item adicionado.</p>
+            </div>
+
+            <!-- OPÇÃO DE PAGAMENTO ADICIONADA -->
+            <div class="payment-section">
+                <label>Pagamento & Status</label>
+                <div class="payment-row">
+                    <select id="forma-pagamento" class="payment-select">
+                        <option value="Dinheiro">💵 Dinheiro</option>
+                        <option value="Cartão de Crédito">💳 Crédito</option>
+                        <option value="Cartão de Débito">💳 Débito</option>
+                        <option value="PIX">⚡ PIX</option>
+                    </select>
+                    <select id="status-pagamento" class="status-select">
+                        <option value="PENDENTE">⏳ Pendente</option>
+                        <option value="PAGO">✅ Pago</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="total-section">
+                <span>Total:</span>
+                <span id="total-pedido">R$ 0,00</span>
+            </div>
+
+            <button class="btn-send" id="btn-enviar-txt" onclick="enviarPedido()">Finalizar e Imprimir</button>
+        </aside>
+    </div>
+
+    <!-- Gerenciador do Cardápio -->
+    <section class="admin-section">
+        <div class="admin-box">
+            <h4>⚙️ Gerenciador do Cardápio (Cadastrar Produto)</h4>
+            <div class="admin-form">
+                <div class="form-group">
+                    <label for="new-nome">Nome do Produto</label>
+                    <input type="text" id="new-nome" placeholder="Ex: X-Salada Especial">
+                </div>
+                <div class="form-group">
+                    <label for="new-preco">Preço (R$)</label>
+                    <input type="number" id="new-preco" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="new-categoria">Categoria</label>
+                    <select id="new-categoria">
+                        <option value="bebidas">Bebidas</option>
+                        <option value="lanches">Lanches</option>
+                        <option value="buffet">Buffet</option>
+                    </select>
+                </div>
+                <button class="btn-save" onclick="cadastrarProduto()">Salvar</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTAINER INVISÍVEL DE IMPRESSÃO -->
+    <div id="ticket-impressao"></div>
+
+    <script>
+        let produtos = [
+            { id: 1, nome: "Água mineral 500ml", preco: 4.50, categoria: "bebidas" },
+            { id: 2, nome: "Suco de Laranja", preco: 8.00, categoria: "bebidas" },
+            { id: 3, nome: "Refrigerante Lata", preco: 6.50, categoria: "bebidas" },
+            { id: 4, nome: "X-Burguer Tradicional", preco: 22.00, categoria: "lanches" },
+            { id: 5, nome: "Misto Quente Caprichado", preco: 12.50, categoria: "lanches" },
+            { id: 6, nome: "Sanduíche Natural", preco: 14.00, categoria: "lanches" },
+            { id: 7, nome: "Buffet Livre (Por Pessoa)", preco: 34.90, categoria: "buffet" },
+            { id: 8, nome: "Buffet Quilo (100g)", preco: 5.90, categoria: "buffet" }
+        ];
+
+        let pedidoAtual = [];
+        let categoryAtual = 'todos';
+
+        function renderizarProdutos() {
+            const container = document.getElementById('produtos-container');
+            container.innerHTML = '';
+
+            const produtosFiltrados = categoryAtual === 'todos' 
+                ? produtos 
+                : produtos.filter(p => p.categoria === categoryAtual);
+
+            if(produtosFiltrados.length === 0) {
+                container.innerHTML = '<p style="color: #888; grid-column: 1/-1; padding: 20px;">Nenhum produto cadastrado nesta categoria.</p>';
+                return;
+            }
+
+            produtosFiltrados.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <button class="btn-remove-cardapio" onclick="removerProdutoCardapio(${prod.id})">Excluir ×</button>
+                    <div class="product-name">${prod.nome}</div>
+                    <div class="product-price">R$ ${prod.preco.toFixed(2).replace('.', ',')}</div>
+                    <button class="btn-add" onclick="adicionarItem(${prod.id})">+ Adicionar</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function removerProdutoCardapio(id) {
+            const produto = produtos.find(p => p.id === id);
+            if (confirm(`Tem certeza que deseja excluir "${produto.nome}" do cardápio?`)) {
+                produtos = produtos.filter(p => p.id !== id);
+                pedidoAtual = pedidoAtual.filter(item => item.id !== id);
+                renderizarProdutos();
+                atualizarComanda();
+            }
+        }
+
+        function cadastrarProduto() {
+            const nomeInput = document.getElementById('new-nome');
+            const precoInput = document.getElementById('new-preco');
+            const categoriaInput = document.getElementById('new-categoria');
+
+            const nome = nomeInput.value.trim();
+            const preco = parseFloat(precoInput.value);
+            const categoria = categoriaInput.value;
+
+            if (!nome || isNaN(preco) || preco <= 0) {
+                alert("Por favor, insira um nome válido e um preço maior que zero.");
+                return;
+            }
+
+            const novoId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) + 1 : 1;
+
+            produtos.push({
+                id: novoId,
+                nome: nome,
+                preco: preco,
+                categoria: categoria
+            });
+
+            nomeInput.value = '';
+            precoInput.value = '';
+
+            renderizarProdutos();
+            alert(`"${nome}" cadastrado com sucesso em "${categoria.toUpperCase()}"!`);
+        }
+
+        function filtrarCategoria(categoria, botao) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            botao.classList.add('active');
+            categoryAtual = categoria;
+            renderizarProdutos();
+        }
+
+        function atualizarMesaNoResumo() {
+            const seletor = document.getElementById('mesa');
+            const resumoMesa = document.getElementById('resumo-mesa');
+            const formDelivery = document.getElementById('delivery-inputs');
+            const btnEnviar = document.getElementById('btn-enviar-txt');
+
+            if (seletor.value === "Delivery") {
+                resumoMesa.innerText = "🛵 Novo Delivery";
+                formDelivery.style.display = "flex";
+                btnEnviar.style.backgroundColor = "var(--delivery-color)";
+            } else {
+                resumoMesa.innerText = "Mesa " + seletor.value;
+                formDelivery.style.display = "none";
+                btnEnviar.style.backgroundColor = "var(--success)";
+            }
+        }
+
+        function adicionarItem(id) {
+            const produto = produtos.find(p => p.id === id);
+            if (!produto) return;
+
+            const itemExistente = pedidoAtual.find(item => item.id === id);
+
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                pedidoAtual.push({ ...produto, grandmother: 1, quantidade: 1 });
+            }
+            atualizarComanda();
+        }
+
+        function alterarQuantidade(id, mudanca) {
+            const item = pedidoAtual.find(item => item.id === id);
+            if (!item) return;
+
+            item.quantidade += mudanca;
+
+            if (item.quantidade <= 0) {
+                pedidoAtual = pedidoAtual.filter(item => item.id !== id);
+            }
+            atualizarComanda();
+        }
+
+        function atualizarComanda() {
+            const containerItens = document.getElementById('itens-comanda');
+            const containerTotal = document.getElementById('total-pedido');
+            
+            if (pedidoAtual.length === 0) {
+                containerItens.innerHTML = '<p style="color: #888; text-align: center; margin-top: 20px;">Nenhum item adicionado.</p>';
+                containerTotal.innerText = 'R$ 0,00';
+                return;
+            }
+
+            containerItens.innerHTML = '';
+            let total = 0;
+
+            pedidoAtual.forEach(item => {
+                const subtotal = item.preco * item.quantidade;
+                total += subtotal;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'order-item';
+                itemDiv.innerHTML = `
+                    <div>
+                        <div><strong>${item.nome}</strong></div>
+                        <small style="color: #7f8c8d">R$ ${subtotal.toFixed(2).replace('.', ',')}</small>
+                    </div>
+                    <div class="item-controls">
+                        <button class="btn-qty" onclick="alterarQuantidade(${item.id}, -1)">-</button>
+                        <span>${item.quantidade}</span>
+                        <button class="btn-qty" onclick="alterarQuantidade(${item.id}, 1)">+</button>
+                    </div>
+                `;
+                containerItens.appendChild(itemDiv);
+            });
+
+            containerTotal.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        // FUNÇÃO DE IMPRESSÃO ATUALIZADA COM DADOS DE PAGAMENTO
+        function gerenciarImpressao(tipo, infoDelivery = null) {
+            const ticketContainer = document.getElementById('ticket-impressao');
+            const dataHora = new Date().toLocaleString('pt-BR');
+            const formaPagto = document.getElementById('forma-pagamento').value;
+            const statusPagto = document.getElementById('status-pagamento').value;
+            
+            let htmlTicket = `
+                <div class="ticket-header">
+                    <div class="ticket-title">COMPROVANTE DE PEDIDO</div>
+                    <div>Data: ${dataHora}</div>
+                    <div>Origem: ${tipo}</div>
+                </div>
+            `;
+
+            if (infoDelivery) {
+                htmlTicket += `
+                    <div><strong>CLIENTE:</strong> ${infoDelivery.nome}</div>
+                    <div><strong>FONE:</strong> ${infoDelivery.fone}</div>
+                    <div><strong>END:</strong> ${infoDelivery.end}</div>
+                    <div class="ticket-divisor"></div>
+                `;
+            }
+
+            htmlTicket += `
+                <div class="ticket-linha"><strong>Item</strong><strong>Qtd x Preço</strong></div>
+                <div class="ticket-divisor"></div>
+            `;
+
+            let total = 0;
+            pedidoAtual.forEach(item => {
+                const subtotal = item.preco * item.quantidade;
+                total += subtotal;
+                htmlTicket += `
+                    <div class="ticket-linha">
+                        <span>${item.nome}</span>
+                        <span>${item.quantidade}x R$ ${item.preco.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+
+            htmlTicket += `
+                <div class="ticket-divisor"></div>
+                <div class="ticket-linha">
+                    <span>FORMA DE PAGTO:</span>
+                    <span><strong>${formaPagto.toUpperCase()}</strong></span>
+                </div>
+                <div class="ticket-linha">
+                    <span>STATUS:</span>
+                    <span><strong>${statusPagto}</strong></span>
+                </div>
+                <div class="ticket-divisor"></div>
+                <div class="ticket-linha ticket-total">
+                    <span>TOTAL DO PEDIDO:</span>
+                    <span>R$ ${total.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div class="ticket-divisor" style="border-top-style: solid; margin-top:20px;"></div>
+                <div style="text-align:center; font-size:0.8rem;">Impresso via Garçom App</div>
+            `;
+
+            ticketContainer.innerHTML = htmlTicket;
+            window.print();
+        }
+
+        function enviarPedido() {
+            if (pedidoAtual.length === 0) {
+                alert("Adicione pelo menos um item antes de enviar!");
+                return;
+            }
+
+            const tipoAtendimento = document.getElementById('mesa').value;
+
+            if (tipoAtendimento === "Delivery") {
+                const nome = document.getElementById('dev-nome').value.trim();
+                const fone = document.getElementById('dev-fone').value.trim();
+                const endereco = document.getElementById('dev-end').value.trim();
+
+                if (!nome || !fone || !endereco) {
+                    alert("Por favor, preencha todos os dados do Delivery (Nome, Telefone e Endereço).");
+                    return;
+                }
+
+                gerenciarImpressao("DELIVERY 🛵", { nome, fone, end: endereco });
+                
+                document.getElementById('dev-nome').value = '';
+                document.getElementById('dev-fone').value = '';
+                document.getElementById('dev-end').value = '';
+            } else {
+                gerenciarImpressao(`MESA ${tipoAtendimento} 🍽️`);
+            }
+
+            // Reseta campos de pagamento de volta ao padrão após concluir
+            document.getElementById('forma-pagamento').value = "Dinheiro";
+            document.getElementById('status-pagamento').value = "PENDENTE";
+
+            pedidoAtual = [];
+            atualizarComanda();
+        }
+
+        renderizarProdutos();
+    </script>
+</body>
+</html>
